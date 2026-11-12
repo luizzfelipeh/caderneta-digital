@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block titulo %}Entrar{% endblock %}
+{% block conteudo %}
+<section class="cartao cartao-estreito">
+  <h1 class="h3 mb-1">Entrar</h1>
+  <p class="texto-apoio mb-4">Controle do fiado do mercadinho.</p>
+
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.email.label(class="form-label") }}
+      {{ form.email(class="form-control form-control-lg" + (" is-invalid" if form.email.errors else ""),
+                    type="email", autocomplete="username", autofocus=true,
+                    **({"aria-describedby": "erro-email"} if form.email.errors else {})) }}
+      {% for erro in form.email.errors %}<div id="erro-email" class="invalid-feedback">{{ erro }}</div>{% endfor %}
+    </div>
+    <div class="mb-4">
+      {{ form.senha.label(class="form-label") }}
+      {{ form.senha(class="form-control form-control-lg" + (" is-invalid" if form.senha.errors else ""),
+                    autocomplete="current-password") }}
+      {% for erro in form.senha.errors %}<div class="invalid-feedback">{{ erro }}</div>{% endfor %}
+    </div>
+    {{ form.entrar(class="btn btn-principal btn-lg w-100") }}
+  </form>
+</section>
+{% endblock %}

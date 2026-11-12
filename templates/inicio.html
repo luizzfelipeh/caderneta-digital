@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block titulo %}Clientes{% endblock %}
+{% block conteudo %}
+<section class="resumo" aria-label="Resumo do fiado">
+  <div class="resumo-item">
+    <span class="resumo-rotulo">Total a receber</span>
+    <span class="resumo-valor">R$ {{ resumo.total_a_receber|brl }}</span>
+  </div>
+  <div class="resumo-item">
+    <span class="resumo-rotulo">Devendo</span>
+    <span class="resumo-valor">{{ resumo.devedores|length }}</span>
+  </div>
+  <div class="resumo-item {% if resumo.debitos_antigos %}resumo-alerta{% endif %}">
+    <span class="resumo-rotulo">Atrasados +30d</span>
+    <span class="resumo-valor">{{ resumo.debitos_antigos|length }}</span>
+  </div>
+</section>
+
+<form method="get" action="{{ url_for('main.inicio') }}" class="busca" role="search">
+  <label for="q" class="form-label">Buscar cliente</label>
+  <div class="busca-linha">
+    <input id="q" name="q" type="search" class="form-control form-control-lg"
+           value="{{ busca }}" placeholder="Digite o nome" autocomplete="off" maxlength="100">
+    <button type="submit" class="btn btn-secundario btn-lg">Buscar</button>
+  </div>
+  {% if mostrar_inativos %}<input type="hidden" name="inativos" value="1">{% endif %}
+</form>
+
+<a href="{{ url_for('main.novo_cliente') }}" class="btn btn-principal btn-lg w-100 mb-3">+ Novo cliente</a>
+
+<h1 class="h5 mb-2">
+  {% if busca %}Resultado para “{{ busca }}”{% else %}Clientes{% endif %}
+  <span class="texto-apoio">({{ clientes|length }})</span>
+</h1>
+
+{% if clientes %}
+<ul class="lista-clientes">
+  {% for cliente in clientes %}
+  {% set saldo = cliente.saldo %}
+  <li>
+    <a href="{{ url_for('main.ficha_cliente', cliente_id=cliente.id) }}" class="item-cliente">
+      <span class="item-nome">
+        {{ cliente.nome }}
+        {% if not cliente.ativo %}<span class="etiqueta etiqueta-cinza">Inativo</span>{% endif %}
+        {% if cliente.tem_debito_antigo(referencia) %}<span class="etiqueta etiqueta-alerta">+30 dias</span>{% endif %}
+      </span>
+      {% if saldo > 0 %}
+        <span class="item-saldo saldo-devendo">Deve R$ {{ saldo|brl }}</span>
+      {% else %}
+        <span class="item-saldo saldo-em-dia">Em dia ✓</span>
+      {% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="vazio">
+  {% if busca %}Nenhum cliente encontrado com esse nome.{% else %}Nenhum cliente cadastrado ainda. Toque em “+ Novo cliente”.{% endif %}
+</p>
+{% endif %}
+
+<p class="mt-3">
+  {% if mostrar_inativos %}
+    <a href="{{ url_for('main.inicio', q=busca or None) }}">Esconder clientes inativos</a>
+  {% else %}
+    <a href="{{ url_for('main.inicio', q=busca or None, inativos=1) }}">Mostrar também clientes inativos</a>
+  {% endif %}
+</p>
+{% endblock %}

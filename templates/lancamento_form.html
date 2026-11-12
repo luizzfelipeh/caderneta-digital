@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% set eh_compra = tipo == "compra" %}
+{% block titulo %}{{ "Nova compra" if eh_compra else "Novo pagamento" }}{% endblock %}
+{% block conteudo %}
+<p class="mb-2"><a href="{{ url_for('main.ficha_cliente', cliente_id=cliente.id) }}">← Voltar para {{ cliente.nome }}</a></p>
+
+<section class="cartao">
+  <h1 class="h3 mb-1">{{ "Nova compra fiada" if eh_compra else "Registrar pagamento" }}</h1>
+  <p class="mb-3"><strong>{{ cliente.nome }}</strong> · saldo atual: R$ {{ cliente.saldo|brl }}</p>
+
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.valor.label(class="form-label") }}
+      {{ form.valor(class="form-control campo-valor" + (" is-invalid" if form.valor.errors else ""),
+                    inputmode="decimal", autocomplete="off", autofocus=true, placeholder="0,00",
+                    **({"aria-describedby": "erro-valor"} if form.valor.errors else {})) }}
+      {% for erro in form.valor.errors %}<div id="erro-valor" class="invalid-feedback">{{ erro }}</div>{% endfor %}
+    </div>
+
+    {% if eh_compra %}
+    <div class="mb-4">
+      {{ form.descricao.label(class="form-label") }}
+      {{ form.descricao(class="form-control form-control-lg", placeholder="Ex.: pão e frios", maxlength="200") }}
+    </div>
+    {% else %}
+    <div class="mb-4">
+      <button type="button" class="btn btn-secundario w-100" data-preencher-valor="{{ cliente.saldo|brl }}">
+        Pagou tudo (R$ {{ cliente.saldo|brl }})
+      </button>
+    </div>
+    {% endif %}
+
+    {{ form.salvar(class="btn btn-lg w-100 " + ("btn-compra" if eh_compra else "btn-pagamento"),
+                   value=("Salvar compra" if eh_compra else "Salvar pagamento")) }}
+  </form>
+</section>
+{% endblock %}

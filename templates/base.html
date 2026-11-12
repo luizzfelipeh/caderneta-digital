@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14532d">
+  <title>{% block titulo %}Caderneta Digital{% endblock %} · Caderneta Digital</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="topo">
+    <div class="container topo-interno">
+      <a class="marca" href="{{ url_for('main.inicio') }}">📒 Caderneta Digital</a>
+      {% if current_user.is_authenticated %}
+      <nav aria-label="Menu principal" class="menu">
+        <a href="{{ url_for('main.inicio') }}" {% if request.endpoint == 'main.inicio' %}aria-current="page"{% endif %}>Clientes</a>
+        <a href="{{ url_for('main.painel') }}" {% if request.endpoint == 'main.painel' %}aria-current="page"{% endif %}>Painel</a>
+        <form method="post" action="{{ url_for('main.sair') }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="link-sair">Sair</button>
+        </form>
+      </nav>
+      {% endif %}
+    </div>
+  </header>
+
+  <main id="conteudo" class="container py-3">
+    <div aria-live="polite">
+      {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+          <div class="alert alert-{{ categoria }}" role="{{ 'alert' if categoria in ['danger', 'warning'] else 'status' }}">{{ mensagem }}</div>
+        {% endfor %}
+      {% endwith %}
+    </div>
+    {% block conteudo %}{% endblock %}
+  </main>
+</body>
+</html>

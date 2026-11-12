@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block titulo %}{{ cliente.nome }}{% endblock %}
+{% block conteudo %}
+{% set saldo = cliente.saldo %}
+{% set desde = cliente.devendo_desde() %}
+<p class="mb-2"><a href="{{ url_for('main.inicio') }}">← Voltar para clientes</a></p>
+
+<section class="cartao">
+  <h1 class="h3 mb-1">{{ cliente.nome }}
+    {% if not cliente.ativo %}<span class="etiqueta etiqueta-cinza">Inativo</span>{% endif %}
+  </h1>
+  {% if cliente.telefone %}<p class="texto-apoio mb-2">Telefone: {{ cliente.telefone }}</p>{% endif %}
+
+  <div class="saldo-destaque {% if saldo > 0 %}saldo-destaque-devendo{% else %}saldo-destaque-em-dia{% endif %}">
+    <span class="saldo-rotulo">{% if saldo > 0 %}Saldo devedor{% else %}Situação{% endif %}</span>
+    <span class="saldo-numero">{% if saldo > 0 %}R$ {{ saldo|brl }}{% else %}Em dia ✓{% endif %}</span>
+    {% if desde %}
+      <span class="saldo-desde">
+        Devendo desde {{ desde|data }}
+        {% if cliente.tem_debito_antigo(referencia) %}<strong> · há mais de 30 dias</strong>{% endif %}
+      </span>
+    {% endif %}
+  </div>
+
+  {% if cliente.ativo %}
+  <div class="botoes-acao">
+    <a href="{{ url_for('main.nova_compra', cliente_id=cliente.id) }}" class="btn btn-compra btn-lg">+ Compra</a>
+    <a href="{{ url_for('main.novo_pagamento', cliente_id=cliente.id) }}"
+       class="btn btn-pagamento btn-lg {% if saldo <= 0 %}disabled{% endif %}"
+       {% if saldo <= 0 %}aria-disabled="true" tabindex="-1"{% endif %}>+ Pagamento</a>
+  </div>
+  {% endif %}
+</section>
+
+<section class="mt-4" aria-labelledby="titulo-historico">
+  <h2 id="titulo-historico" class="h5">Histórico</h2>
+  {% set itens = cliente.historico() %}
+  {% if itens %}
+  <ul class="historico">
+    {% for item in itens %}
+    <li class="historico-item historico-{{ item.tipo }}">
+      <div class="historico-info">
+        <span class="historico-tipo">{{ "Compra" if item.tipo == "compra" else "Pagamento" }}</span>
+        <span class="historico-data">{{ item.data|data_hora }}</span>
+        {% if item.descricao %}<span class="historico-descricao">{{ item.descricao }}</span>{% endif %}
+      </div>
+      <div class="historico-direita">
+        <span class="historico-valor">{{ "+" if item.tipo == "compra" else "−" }} R$ {{ item.valor|brl }}</span>
+        <form method="post"
+              action="{{ url_for('main.excluir_compra', compra_id=item.id) if item.tipo == 'compra' else url_for('main.excluir_pagamento', pagamento_id=item.id) }}"
+              data-confirmar="Excluir este lançamento de R$ {{ item.valor|brl }}? O saldo será recalculado.">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-excluir" aria-label="Excluir {{ item.tipo }} de R$ {{ item.valor|brl }} em {{ item.data|data }}">Excluir</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="vazio">Nenhum lançamento ainda.</p>
+  {% endif %}
+</section>
+
+<section class="mt-4 acoes-secundarias">
+  <a href="{{ url_for('main.editar_cliente', cliente_id=cliente.id) }}" class="btn btn-secundario">Editar dados</a>
+  <form method="post" action="{{ url_for('main.alternar_ativo', cliente_id=cliente.id) }}"
+        data-confirmar="{{ 'Reativar este cliente?' if not cliente.ativo else 'Inativar este cliente? O histórico será mantido.' }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-secundario">{{ "Reativar cliente" if not cliente.ativo else "Inativar cliente" }}</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+{% set meses = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"] %}
+<h1 class="h3 mb-3">Painel do fiado</h1>
+
+<section class="resumo" aria-label="Situação atual">
+  <div class="resumo-item">
+    <span class="resumo-rotulo">Total a receber</span>
+    <span class="resumo-valor">R$ {{ resumo.total_a_receber|brl }}</span>
+  </div>
+  <div class="resumo-item">
+    <span class="resumo-rotulo">Clientes devendo</span>
+    <span class="resumo-valor">{{ resumo.devedores|length }}</span>
+  </div>
+  <div class="resumo-item {% if resumo.debitos_antigos %}resumo-alerta{% endif %}">
+    <span class="resumo-rotulo">Atrasados +30d</span>
+    <span class="resumo-valor">{{ resumo.debitos_antigos|length }}</span>
+  </div>
+</section>
+
+<section class="cartao mb-4" aria-labelledby="titulo-taxa">
+  <div class="navegacao-mes">
+    <a href="{{ url_for('main.painel', mes=mes_anterior.strftime('%Y-%m')) }}" aria-label="Mês anterior">‹</a>
+    <h2 id="titulo-taxa" class="m-0"><span class="rotulo-taxa">Taxa de recebimento</span><span class="mes">{{ meses[inicio_mes.month - 1]|capitalize }}/{{ inicio_mes.year }}</span></h2>
+    <a href="{{ url_for('main.painel', mes=mes_seguinte.strftime('%Y-%m')) }}" aria-label="Próximo mês">›</a>
+  </div>
+  <p class="taxa-numero">{% if indicador.taxa is not none %}{{ indicador.taxa|string|replace(".", ",") }}%{% else %}—{% endif %}</p>
+  <dl class="taxa-detalhe">
+    <div><dt>Vendido fiado no mês</dt><dd>R$ {{ indicador.vendido|brl }}</dd></div>
+    <div><dt>Recebido no mês</dt><dd>R$ {{ indicador.recebido|brl }}</dd></div>
+  </dl>
+  <p class="texto-apoio m-0">Cálculo: recebido ÷ vendido fiado × 100.</p>
+</section>
+
+<section class="mb-4" aria-labelledby="titulo-antigos">
+  <h2 id="titulo-antigos" class="h5">Devendo há mais de 30 dias</h2>
+  {% if resumo.debitos_antigos %}
+  <ul class="lista-clientes">
+    {% for cliente in resumo.debitos_antigos %}
+    <li>
+      <a href="{{ url_for('main.ficha_cliente', cliente_id=cliente.id) }}" class="item-cliente item-alerta">
+        <span class="item-nome">{{ cliente.nome }}<span class="item-sub">desde {{ cliente.devendo_desde()|data }}</span></span>
+        <span class="item-saldo saldo-devendo">R$ {{ cliente.saldo|brl }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="vazio">Nenhum cliente com débito antigo. 👍</p>
+  {% endif %}
+</section>
+
+<section class="mb-4" aria-labelledby="titulo-devedores">
+  <h2 id="titulo-devedores" class="h5">Todos os clientes devendo</h2>
+  {% if resumo.devedores %}
+  <ul class="lista-clientes">
+    {% for cliente in resumo.devedores %}
+    <li>
+      <a href="{{ url_for('main.ficha_cliente', cliente_id=cliente.id) }}" class="item-cliente">
+        <span class="item-nome">{{ cliente.nome }}</span>
+        <span class="item-saldo saldo-devendo">R$ {{ cliente.saldo|brl }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="vazio">Ninguém devendo no momento.</p>
+  {% endif %}
+</section>
+
+<p><a href="{{ url_for('main.backup') }}" class="btn btn-secundario">Baixar cópia de segurança (backup)</a></p>
+{% endblock %}
