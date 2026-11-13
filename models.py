@@ -112,6 +112,18 @@ class Cliente(db.Model):
         referencia = referencia or agora()
         return (referencia - desde) > timedelta(days=DIAS_DEBITO_ANTIGO)
 
+    def validar_pagamento(self, valor):
+        """Regra de negócio do pagamento, concentrada no Model.
+
+        Retorna None se o pagamento é permitido, ou a mensagem de erro
+        que deve ser mostrada à usuária.
+        """
+        if self.saldo <= ZERO:
+            return "Este cliente não tem dívida em aberto."
+        if _dinheiro(valor) > self.saldo:
+            return "O pagamento não pode ser maior que o saldo devedor."
+        return None
+
     def historico(self):
         """Compras e pagamentos juntos, do mais recente para o mais antigo."""
         itens = [
