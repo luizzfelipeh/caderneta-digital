@@ -1,6 +1,6 @@
 # 📒 Caderneta Digital
 
-![CI](https://github.com/SEU-USUARIO/caderneta-digital/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/luizzfelipeh/Caderneta-digital/actions/workflows/ci.yml/badge.svg)](https://github.com/luizzfelipeh/Caderneta-digital/actions/workflows/ci.yml)
 
 Sistema web para controle de vendas fiadas de um mercadinho de bairro.
 Projeto de Software – ADS (Experiências Práticas – DreamShaper).
@@ -62,9 +62,10 @@ No Chrome, aperte `F12` e depois `Ctrl + Shift + M` para simular a tela de um ce
 ### Rodar os testes automáticos
 
 ```
-python -m pytest                    # todos (20 testes)
+python -m pytest                    # todos os testes
 python -m pytest tests/unit         # só os unitários (regras do Model)
 python -m pytest tests/integration  # só os de integração (telas + banco)
+python -m pytest --cov --cov-report=term-missing   # com análise de cobertura
 ```
 
 Os mesmos testes rodam automaticamente no GitHub a cada envio (Integração Contínua,
