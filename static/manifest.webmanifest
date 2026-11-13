@@ -1,0 +1,15 @@
+{
+  "name": "Caderneta Digital",
+  "short_name": "Caderneta",
+  "description": "Controle do fiado do mercadinho",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f7f9",
+  "theme_color": "#14532d",
+  "icons": [
+    { "src": "/static/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/static/icone.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
