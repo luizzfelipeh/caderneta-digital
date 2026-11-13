@@ -118,3 +118,71 @@ def test_busca_por_nome(logado, app, novo_cliente):
         novo_cliente("Bruno Costa")
     html = logado.get("/?q=souza").get_data(as_text=True)
     assert "Ana Souza" in html and "Bruno Costa" not in html
+
+
+# ---------------- Fluxos complementares (cobertura das demais telas) ----------------
+
+def test_editar_cliente(logado, app, novo_cliente):
+    with app.app_context():
+        cid = novo_cliente("Ana").id
+    logado.post(f"/clientes/{cid}/editar", data={"nome": "Ana Paula", "telefone": "11 98888-7777"})
+    with app.app_context():
+        c = db.session.get(Cliente, cid)
+        assert c.nome == "Ana Paula" and c.telefone == "11988887777"
+
+
+def test_inativar_cliente_bloqueia_novas_compras(logado, app, novo_cliente):
+    with app.app_context():
+        cid = novo_cliente().id
+    logado.post(f"/clientes/{cid}/ativo")
+    with app.app_context():
+        assert db.session.get(Cliente, cid).ativo is False
+    r = logado.post(f"/clientes/{cid}/compra", data={"valor": "10"}, follow_redirects=True)
+    assert "Este cliente está inativo" in r.get_data(as_text=True)
+    assert "Ana" not in logado.get("/").get_data(as_text=True)  # inativo some da lista padrão
+    assert "Ana" in logado.get("/?inativos=1").get_data(as_text=True)
+
+
+def test_excluir_pagamento_recalcula_saldo(logado, app, novo_cliente):
+    with app.app_context():
+        c = novo_cliente()
+        db.session.add(Compra(cliente=c, valor=Decimal("30.00")))
+        pagamento = Pagamento(cliente=c, valor=Decimal("10.00"))
+        db.session.add(pagamento)
+        db.session.commit()
+        cid, pid = c.id, pagamento.id
+    logado.post(f"/pagamentos/{pid}/excluir")
+    with app.app_context():
+        assert db.session.get(Cliente, cid).saldo == Decimal("30.00")
+
+
+def test_painel_mostra_taxa_e_navega_entre_meses(logado, app, novo_cliente):
+    with app.app_context():
+        c = novo_cliente()
+        db.session.add_all([Compra(cliente=c, valor=Decimal("100.00")),
+                            Pagamento(cliente=c, valor=Decimal("50.00"))])
+        db.session.commit()
+    html = logado.get("/painel").get_data(as_text=True)
+    assert "50,0%" in html and "Taxa de recebimento" in html
+    assert logado.get("/painel?mes=2020-01").status_code == 200
+    assert logado.get("/painel?mes=invalido").status_code == 200
+
+
+def test_backup_baixa_arquivo_do_banco(logado):
+    r = logado.get("/backup")
+    assert r.status_code == 200
+    assert "attachment" in r.headers["Content-Disposition"]
+
+
+def test_sair_encerra_a_sessao(logado):
+    logado.post("/sair")
+    r = logado.get("/")
+    assert r.status_code == 302 and "/login" in r.headers["Location"]
+
+
+def test_icone_e_manifesto_disponiveis(cliente_http):
+    html = cliente_http.get("/login").get_data(as_text=True)
+    assert 'rel="icon"' in html and 'rel="apple-touch-icon"' in html and 'rel="manifest"' in html
+    for arquivo in ["icone.svg", "icone-192.png", "icone-512.png", "apple-touch-icon.png",
+                    "manifest.webmanifest"]:
+        assert cliente_http.get(f"/static/{arquivo}").status_code == 200

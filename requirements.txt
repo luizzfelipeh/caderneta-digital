@@ -4,3 +4,4 @@ Flask-Login==0.6.*
 Flask-WTF==1.2.*
 tzdata
 pytest==8.*
+pytest-cov==6.*
