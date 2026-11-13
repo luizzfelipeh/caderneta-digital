@@ -186,3 +186,15 @@ def test_icone_e_manifesto_disponiveis(cliente_http):
     for arquivo in ["icone.svg", "icone-192.png", "icone-512.png", "apple-touch-icon.png",
                     "manifest.webmanifest"]:
         assert cliente_http.get(f"/static/{arquivo}").status_code == 200
+
+
+def test_pagamento_bloqueado_para_cliente_sem_divida(logado, app, novo_cliente):
+    with app.app_context():
+        cid = novo_cliente().id
+    # Acesso direto pelo endereço (GET) volta para a ficha com aviso
+    r = logado.get(f"/clientes/{cid}/pagamento", follow_redirects=True)
+    assert "não tem dívida em aberto" in r.get_data(as_text=True)
+    # Envio forçado (POST) também é recusado no servidor
+    logado.post(f"/clientes/{cid}/pagamento", data={"valor": "10"})
+    with app.app_context():
+        assert Pagamento.query.count() == 0
