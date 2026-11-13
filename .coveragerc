@@ -1,0 +1,15 @@
+# Configuração da análise de cobertura (pytest-cov / coverage.py)
+# Mede apenas o código da aplicação (Model, Controller e configuração).
+[run]
+source = .
+omit =
+    tests/*
+    venv/*
+    criar_usuario.py
+    dados_exemplo.py
+    dados_desempenho.py
+    wsgi.py
+
+[report]
+show_missing = True
+skip_covered = False

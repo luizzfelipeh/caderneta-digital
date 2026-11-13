@@ -36,3 +36,6 @@ jobs:
 
       - name: Testes de integração
         run: python -m pytest tests/integration
+
+      - name: Análise de cobertura (mínimo de 85%)
+        run: python -m pytest --cov --cov-report=term-missing --cov-fail-under=85
