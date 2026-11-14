@@ -90,3 +90,13 @@ def test_converter_valor_rejeita_entradas_invalidas():
 def test_formatacao_em_reais():
     assert _brl(Decimal("1234.5")) == "1.234,50"
     assert _brl(Decimal("0")) == "0,00"
+
+
+def test_validar_pagamento_regra_no_model(app, novo_cliente):
+    with app.app_context():
+        c = novo_cliente()
+        assert c.validar_pagamento(Decimal("10")) == "Este cliente não tem dívida em aberto."
+        db.session.add(Compra(cliente=c, valor=Decimal("20.00")))
+        db.session.commit()
+        assert c.validar_pagamento(Decimal("25")) == "O pagamento não pode ser maior que o saldo devedor."
+        assert c.validar_pagamento(Decimal("20")) is None

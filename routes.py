@@ -192,12 +192,16 @@ def nova_compra(cliente_id):
 @login_required
 def novo_pagamento(cliente_id):
     cliente = _buscar_cliente(cliente_id)
+    # Bloqueio no servidor: mesmo acessando o endereço direto, não é possível
+    # registrar pagamento para cliente sem dívida (o botão já fica desativado na tela).
+    if cliente.saldo <= 0:
+        flash("Este cliente não tem dívida em aberto.", "info")
+        return redirect(url_for("main.ficha_cliente", cliente_id=cliente.id))
     form = LancamentoForm()
     if form.validate_on_submit():
-        if form.valor_convertido > cliente.saldo:
-            form.valor.errors.append(
-                f"O pagamento não pode ser maior que o saldo devedor (R$ {_brl(cliente.saldo)})."
-            )
+        erro = cliente.validar_pagamento(form.valor_convertido)
+        if erro:
+            form.valor.errors.append(f"{erro} (Saldo atual: R$ {_brl(cliente.saldo)})")
         else:
             pagamento = Pagamento(cliente=cliente, valor=form.valor_convertido, data=agora())
             db.session.add(pagamento)

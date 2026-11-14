@@ -73,6 +73,11 @@ arquivo `.github/workflows/ci.yml`).
 
 ---
 
+## Publicação na internet
+
+O passo a passo para publicar no PythonAnywhere (plano gratuito) está em
+[DEPLOY_PYTHONANYWHERE.md](DEPLOY_PYTHONANYWHERE.md).
+
 ## Estrutura do projeto (MVC)
 
 | Arquivo / pasta | Camada | O que faz |
