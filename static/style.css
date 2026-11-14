@@ -39,10 +39,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, .btn:focus-visible {
   gap: 4px 16px; min-height: 60px; max-width: 640px; }
 .marca { color: #fff; text-decoration: none; font-size: 1.15rem; font-weight: 700;
   display: inline-flex; align-items: center; gap: 10px; min-height: 48px; }
+/* Com texto ampliado (200%), palavras longas e valores quebram linha em vez de
+   gerar rolagem horizontal (requisito de acessibilidade RAC01) */
+body { overflow-wrap: break-word; }
+.item-saldo, .historico-valor { white-space: normal; text-align: right; min-width: 0; }
 /* Logo com borda clara para se destacar sobre o fundo verde do topo */
 .marca-logo { border: 2px solid #e7f5ec; border-radius: 10px; background: #14532d; }
 .marca:hover { color: #fff; }
-.menu { display: flex; align-items: center; gap: 4px; }
+.menu { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
 .menu a, .link-sair {
   color: #fff; text-decoration: none; padding: 10px 12px; min-height: 48px;
   display: inline-flex; align-items: center; border-radius: 8px; font-weight: 600;
@@ -70,6 +74,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, .btn:focus-visible {
 .btn-compra:hover { background: #7f0e2e; color: #fff; }
 .btn-pagamento { background: var(--verde); color: #fff; border: 2px solid var(--verde); }
 .btn-pagamento:hover { background: #0b3b1e; color: #fff; }
+/* Foco por teclado: o botão mantém as cores normais e ganha o contorno azul
+   (o Bootstrap aplicava um fundo claro que fazia o botão parecer desativado) */
+.btn-principal:focus-visible, .btn-pagamento:focus-visible { background: var(--verde); color: #fff; border-color: var(--verde); }
+.btn-compra:focus-visible { background: var(--vermelho); color: #fff; border-color: var(--vermelho); }
+.btn-secundario:focus-visible { background: #fff; color: var(--verde); border-color: var(--verde); }
 .btn.disabled { background: #e5e7eb; border-color: #e5e7eb; color: #4b5563; opacity: 1; }
 
 /* Formulários */
@@ -83,24 +92,27 @@ a:focus-visible, button:focus-visible, input:focus-visible, .btn:focus-visible {
 .form-check-input { width: 1.4em; height: 1.4em; margin-top: .1em; }
 
 /* Resumo no topo */
-.resumo { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.resumo { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.resumo-item { flex: 1 1 5.5rem; }
+.resumo-item:first-child { flex: 1.6 1 7.5rem; }
 .resumo-item { background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 10px 12px; }
 .resumo-alerta { background: var(--laranja-claro); border-color: #f0c27a; }
 .resumo-rotulo { display: block; font-size: .8rem; color: var(--texto-apoio); font-weight: 600; }
-.resumo-valor { display: block; font-size: 1.2rem; font-weight: 800; }
+.resumo-valor { display: block; font-size: 1.2rem; font-weight: 800; white-space: nowrap; }
 
 /* Busca */
 .busca { margin-bottom: 12px; }
-.busca-linha { display: flex; gap: 8px; }
+.busca-linha { display: flex; flex-wrap: wrap; gap: 8px; }
+.busca-linha .form-control { flex: 1 1 8rem; min-width: 0; }
 
 /* Lista de clientes */
-.lista-clientes { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.item-cliente { display: flex; justify-content: space-between; align-items: center; gap: 12px;
+.lista-clientes { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.item-cliente { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 12px;
   background: #fff; border: 1px solid var(--borda); border-radius: 12px; padding: 14px 16px;
   min-height: 64px; text-decoration: none; color: var(--texto); }
 .item-cliente:hover { border-color: var(--verde); color: var(--texto); }
 .item-alerta { border-left: 6px solid var(--laranja); }
-.item-nome { font-weight: 700; display: flex; flex-direction: column; }
+.item-nome { font-weight: 700; display: flex; flex-direction: column; min-width: 0; }
 .item-sub { font-weight: 400; font-size: .9rem; color: var(--texto-apoio); }
 .item-saldo { font-weight: 800; white-space: nowrap; }
 .saldo-devendo { color: var(--vermelho); }
@@ -118,12 +130,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, .btn:focus-visible {
 .saldo-rotulo { font-weight: 600; font-size: .95rem; }
 .saldo-numero { font-size: 2.2rem; font-weight: 800; line-height: 1.2; }
 .saldo-desde { font-size: .95rem; color: var(--texto); }
-.botoes-acao { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.botoes-acao { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); gap: 10px; }
 .botoes-acao .btn { white-space: nowrap; padding-left: 8px; padding-right: 8px; }
 
-.historico { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.historico { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
 .historico-item { background: #fff; border: 1px solid var(--borda); border-radius: 12px;
-  padding: 12px 14px; display: flex; justify-content: space-between; gap: 12px; }
+  padding: 12px 14px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; }
 .historico-compra { border-left: 6px solid var(--vermelho); }
 .historico-pagamento { border-left: 6px solid var(--verde); }
 .historico-info { display: flex; flex-direction: column; }
@@ -144,11 +156,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, .btn:focus-visible {
 .navegacao-mes a { font-size: 1.6rem; text-decoration: none; min-width: 48px; min-height: 48px;
   display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
 .navegacao-mes a:hover { background: var(--verde-claro); }
-.navegacao-mes h2 { text-align: center; }
+.navegacao-mes h2 { text-align: center; flex: 1 1 0; min-width: 0; }
 .navegacao-mes .mes { display: block; font-size: 1.25rem; font-weight: 800; }
 .navegacao-mes .rotulo-taxa { display: block; font-size: .9rem; color: var(--texto-apoio); font-weight: 600; }
 .taxa-numero { font-size: 2.6rem; font-weight: 800; color: var(--verde); text-align: center; margin: 8px 0; }
-.taxa-detalhe { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.taxa-detalhe { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr)); gap: 8px; margin-bottom: 8px; }
 .taxa-detalhe div { background: var(--fundo); border-radius: 10px; padding: 8px 10px; }
 .taxa-detalhe dt { font-size: .8rem; color: var(--texto-apoio); font-weight: 600; }
 .taxa-detalhe dd { margin: 0; font-weight: 800; }
@@ -159,8 +171,3 @@ a:focus-visible, button:focus-visible, input:focus-visible, .btn:focus-visible {
 .alert-danger { color: #7f0e2e; background: var(--vermelho-claro); border-color: #f2a7b6; }
 .alert-warning { color: #6b3a00; background: var(--laranja-claro); border-color: #f0c27a; }
 .alert-info { color: #1e3a5f; background: #eaf2fb; border-color: #a9c6ea; }
-
-@media (max-width: 380px) {
-  .resumo { grid-template-columns: 1fr 1fr; }
-  .resumo-item:first-child { grid-column: span 2; }
-}
