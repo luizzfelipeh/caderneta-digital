@@ -78,6 +78,15 @@ arquivo `.github/workflows/ci.yml`).
 O passo a passo para publicar no PythonAnywhere (plano gratuito) está em
 [DEPLOY_PYTHONANYWHERE.md](DEPLOY_PYTHONANYWHERE.md).
 
+## Monitoramento pós-lançamento
+
+- **Verificação de saúde:** `GET /saude` responde `{"status": "ok", "banco": "ok", "versao": "1.0.0"}`
+  (código 200) ou código **503** se o banco falhar. É pública e não expõe dados de clientes.
+- **Monitor externo:** UptimeRobot (plano gratuito) acessa `/saude` a cada 5 minutos e envia
+  alerta por e-mail se o sistema ficar fora do ar.
+- **Logs:** erros internos são registrados no *error log* do PythonAnywhere (aba **Web**),
+  e a usuária vê apenas uma mensagem simples, sem detalhes técnicos.
+
 ## Estrutura do projeto (MVC)
 
 | Arquivo / pasta | Camada | O que faz |

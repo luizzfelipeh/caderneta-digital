@@ -198,3 +198,27 @@ def test_pagamento_bloqueado_para_cliente_sem_divida(logado, app, novo_cliente):
     logado.post(f"/clientes/{cid}/pagamento", data={"valor": "10"})
     with app.app_context():
         assert Pagamento.query.count() == 0
+
+
+# ---------------- Monitoramento ----------------
+
+def test_saude_responde_ok_sem_login_e_sem_dados_pessoais(cliente_http, app, novo_cliente):
+    with app.app_context():
+        novo_cliente("Ana Souza")
+    r = cliente_http.get("/saude")
+    assert r.status_code == 200
+    dados = r.get_json()
+    assert dados["status"] == "ok" and dados["banco"] == "ok" and dados["versao"] == "1.0.0"
+    assert "Ana" not in r.get_data(as_text=True)
+
+
+def test_saude_retorna_503_quando_banco_falha(cliente_http, monkeypatch):
+    from models import db as banco
+
+    def falhar(*args, **kwargs):
+        raise RuntimeError("banco indisponível")
+
+    monkeypatch.setattr(banco.session, "execute", falhar)
+    r = cliente_http.get("/saude")
+    assert r.status_code == 503
+    assert r.get_json()["banco"] == "erro"
