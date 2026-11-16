@@ -10,7 +10,7 @@ from datetime import datetime
 from flask import (Blueprint, abort, current_app, flash, redirect, render_template,
                    request, send_file, session, url_for)
 from flask_login import current_user, login_required, login_user, logout_user
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from forms import ClienteForm, LancamentoForm, LoginForm
 from models import (Cliente, Compra, Pagamento, Usuario, agora, db, resumo_geral,
@@ -271,6 +271,30 @@ def backup():
     caminho = current_app.config["CAMINHO_BANCO"]
     nome = f"caderneta_backup_{agora():%Y-%m-%d_%H%M}.db"
     return send_file(caminho, as_attachment=True, download_name=nome)
+
+
+# ---------------- Monitoramento pós-lançamento ----------------
+
+@bp.route("/saude")
+def saude():
+    """Verificação de saúde (health check) usada pelo monitor externo (UptimeRobot).
+
+    É pública, mas não expõe nenhum dado de clientes: apenas informa se a
+    aplicação e o banco de dados estão respondendo.
+    """
+    try:
+        db.session.execute(text("SELECT 1"))
+        banco = "ok"
+    except Exception:  # noqa: BLE001 - qualquer falha de banco deve virar alerta
+        current_app.logger.exception("Health check: falha ao acessar o banco de dados")
+        banco = "erro"
+    status = 200 if banco == "ok" else 503
+    return {
+        "status": "ok" if status == 200 else "erro",
+        "banco": banco,
+        "versao": current_app.config.get("VERSAO", "desconhecida"),
+        "horario": agora().isoformat(),
+    }, status
 
 
 def _brl(valor):

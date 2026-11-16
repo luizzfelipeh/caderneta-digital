@@ -72,6 +72,7 @@ def create_app(config_extra=None):
         SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SEGURO", "0") == "1",  # use 1 em produção (HTTPS)
         REMEMBER_COOKIE_HTTPONLY=True,
         WTF_CSRF_TIME_LIMIT=None,
+        VERSAO="1.0.0",
     )
     if config_extra:
         app.config.update(config_extra)
@@ -110,6 +111,18 @@ def create_app(config_extra=None):
             "erro.html",
             mensagem="Não foi possível concluir a ação. Volte e tente novamente.",
         ), 400
+
+    @app.errorhandler(500)
+    def erro_interno(erro):
+        # Registra o erro completo no log do servidor (monitoramento),
+        # mas mostra à usuária apenas uma mensagem simples, sem detalhes técnicos.
+        from flask import render_template
+        app.logger.error("Erro interno: %s", erro)
+        db.session.rollback()
+        return render_template(
+            "erro.html",
+            mensagem="Algo deu errado. Tente novamente em instantes.",
+        ), 500
 
     with app.app_context():
         db.create_all()
